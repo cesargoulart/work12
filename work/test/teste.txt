@@ -1,0 +1,9 @@
+can you put a plus button where is the red circle?
+
+dont forget:
+
+always create a new file for any new feature
+
+always make it very beautifull
+
+always make it animated
