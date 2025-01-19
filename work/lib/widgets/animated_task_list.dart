@@ -1,16 +1,26 @@
 import 'package:flutter/material.dart';
 import '../models/task_model.dart';
+import '../models/subtask_model.dart';
+import 'animated_task_expand_button.dart';
+import 'animated_subtask_list.dart'; // Make sure this import exists
+import 'animated_subtask_dialog.dart';
 
 class AnimatedTaskList extends StatelessWidget {
   final List<Task> tasks;
   final Function(String) onTaskToggle;
   final Function(String) onTaskDelete;
+  final Function(String) onTaskExpand;
+  final Function(String, String) onSubtaskCreated;
+  final Function(String, String) onSubtaskToggle;
 
   const AnimatedTaskList({
     super.key,
     required this.tasks,
     required this.onTaskToggle,
     required this.onTaskDelete,
+    required this.onTaskExpand,
+    required this.onSubtaskCreated,
+    required this.onSubtaskToggle,
   });
 
   @override
@@ -22,9 +32,13 @@ class AnimatedTaskList extends StatelessWidget {
       itemBuilder: (context, index) {
         final task = tasks[index];
         return AnimatedTaskItem(
+          key: ValueKey(task.id),
           task: task,
           onToggle: () => onTaskToggle(task.id),
           onDelete: () => onTaskDelete(task.id),
+          onExpand: () => onTaskExpand(task.id),
+          onSubtaskCreated: onSubtaskCreated,
+          onSubtaskToggle: onSubtaskToggle,
         );
       },
     );
@@ -35,12 +49,18 @@ class AnimatedTaskItem extends StatefulWidget {
   final Task task;
   final VoidCallback onToggle;
   final VoidCallback onDelete;
+  final VoidCallback onExpand;
+  final Function(String, String) onSubtaskCreated;
+  final Function(String, String) onSubtaskToggle;
 
   const AnimatedTaskItem({
     super.key,
     required this.task,
     required this.onToggle,
     required this.onDelete,
+    required this.onExpand,
+    required this.onSubtaskCreated,
+    required this.onSubtaskToggle,
   });
 
   @override
@@ -51,6 +71,21 @@ class _AnimatedTaskItemState extends State<AnimatedTaskItem>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
+  late Animation<double> _heightAnimation;
+
+  void _showSubtaskDialog() {
+    print('_showSubtaskDialog called'); // Add this debug print
+    showDialog(
+      context: context,
+      builder: (context) {
+        print('Building AnimatedSubtaskDialog'); // Add this debug print
+        return AnimatedSubtaskDialog(
+          taskId: widget.task.id,
+          onSubtaskCreated: widget.onSubtaskCreated,
+        );
+      },
+    );
+  }
 
   @override
   void initState() {
@@ -59,19 +94,27 @@ class _AnimatedTaskItemState extends State<AnimatedTaskItem>
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
+
     _scaleAnimation = Tween<double>(begin: 1.0, end: 0.98).animate(
       CurvedAnimation(
         parent: _controller,
         curve: Curves.easeInOut,
       ),
     );
+
+    _heightAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    if (widget.task.isExpanded) {
+      _controller.value = 1.0;
+    }
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  // ... rest of the existing code ...
 
   @override
   Widget build(BuildContext context) {
@@ -93,44 +136,95 @@ class _AnimatedTaskItemState extends State<AnimatedTaskItem>
               ),
             ],
           ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 8,
-            ),
-            title: Text(
-              widget.task.title,
-              style: TextStyle(
-                decoration: widget.task.isCompleted
-                    ? TextDecoration.lineThrough
-                    : null,
-                color: widget.task.isCompleted
-                    ? Colors.grey
-                    : Colors.black87,
-              ),
-            ),
-            subtitle: widget.task.description != null
-                ? Text(
-                    widget.task.description!,
-                    style: TextStyle(
-                      color: widget.task.isCompleted
-                          ? Colors.grey
-                          : Colors.black54,
+          child: Column(
+            children: [
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 8,
+                ),
+                leading: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AnimatedTaskExpandButton(
+                      isExpanded: widget.task.isExpanded,
+                      onPressed: widget.onExpand,
+                      onLongPress: _showSubtaskDialog,
                     ),
-                  )
-                : null,
-            leading: Checkbox(
-              value: widget.task.isCompleted,
-              onChanged: (_) => widget.onToggle(),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
+                    const SizedBox(width: 12),
+                    Checkbox(
+                      value: widget.task.isCompleted,
+                      onChanged: (_) => widget.onToggle(),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ],
+                ),
+                title: Text(
+                  widget.task.title,
+                  style: TextStyle(
+                    decoration: widget.task.isCompleted
+                        ? TextDecoration.lineThrough
+                        : null,
+                    color:
+                        widget.task.isCompleted ? Colors.grey : Colors.black87,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                subtitle:
+                    widget.task.description != null && !widget.task.isExpanded
+                        ? Text(
+                            widget.task.description!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: widget.task.isCompleted
+                                  ? Colors.grey
+                                  : Colors.black54,
+                            ),
+                          )
+                        : null,
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  color: Colors.red.withOpacity(0.8),
+                  onPressed: widget.onDelete,
+                ),
               ),
-            ),
-            trailing: IconButton(
-              icon: const Icon(Icons.delete_outline),
-              color: Colors.red.withOpacity(0.8),
-              onPressed: widget.onDelete,
-            ),
+              if (widget.task.isExpanded)
+                AnimatedBuilder(
+                  animation: _heightAnimation,
+                  builder: (context, child) {
+                    return SizeTransition(
+                      sizeFactor: _heightAnimation,
+                      child: Column(
+                        children: [
+                          if (widget.task.description != null)
+                            Container(
+                              padding: const EdgeInsets.fromLTRB(76, 0, 20, 16),
+                              width: double.infinity,
+                              child: Text(
+                                widget.task.description!,
+                                style: TextStyle(
+                                  color: widget.task.isCompleted
+                                      ? Colors.grey
+                                      : Colors.black54,
+                                ),
+                              ),
+                            ),
+                          if (widget.task.subtasks.isNotEmpty)
+                            AnimatedSubtaskList(
+                              subtasks: widget.task.subtasks,
+                              onSubtaskToggle: (subtaskId) => widget
+                                  .onSubtaskToggle(widget.task.id, subtaskId),
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+            ],
           ),
         ),
       ),
