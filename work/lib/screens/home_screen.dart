@@ -36,6 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
     'DEV2': false,
     'REC1': false,
     'REC2': false,
+    'MR PKG': false,
   };
 
   void _handleSave() {
@@ -141,7 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   onHelpPressed: _handleHelp,
                 ),
                 AnimatedCheckboxGroup(
-                  labels: const ['MR', 'COM', 'DEV1', 'DEV2', 'REC1', 'REC2'],
+labels: const ['MR REC', 'MR PKG', 'COM', 'DEV1', 'DEV2', 'REC1', 'REC2'],
                   values: _checkboxValues,
                   onChanged: (label, value) {
                     setState(() {
@@ -149,6 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     });
                   },
                 ),
+                const SizedBox(height: 16),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
