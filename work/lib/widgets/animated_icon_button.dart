@@ -61,7 +61,7 @@ class _AnimatedIconButtonState extends State<AnimatedIconButton>
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: widget.backgroundColor ?? Theme.of(context).primaryColor,
+              color: widget.label == 'H' ? Colors.green : (widget.backgroundColor ?? Theme.of(context).primaryColor),
               borderRadius: BorderRadius.circular(15),
               boxShadow: [
                 BoxShadow(
