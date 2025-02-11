@@ -43,9 +43,88 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _loadDropdownItems();
     _loadLastProject();
+    _loadTasksFromXML();
   }
 
   String _safeString(String? value) => value ?? '';
+
+  Future<void> _loadTasksFromXML() async {
+    try {
+      final file = File('C:/Users/cesar/Documents/assets/tasks.xml');
+      if (!await file.exists()) return;
+
+      final xmlString = await file.readAsString();
+      final document = XmlDocument.parse(xmlString);
+
+      // Check if current dropdown selections match saved selections
+      final selectionsElement = document.findAllElements('selections').firstOrNull;
+      final savedFirstDropdown = selectionsElement?.findElements('firstDropdown').firstOrNull?.text;
+      final savedSecondDropdown = selectionsElement?.findElements('secondDropdown').firstOrNull?.text;
+
+      // If they don't match, clear tasks
+      if (_firstDropdownValue != savedFirstDropdown || _secondDropdownValue != savedSecondDropdown) {
+        setState(() {
+          _tasks = [];
+        });
+        return;
+      }
+
+      final taskListElement = document.findAllElements('taskList').firstOrNull;
+      if (taskListElement == null) return;
+
+      final tasks = taskListElement.findElements('task').map((taskElement) {
+        final subtasksElement = taskElement.findElements('subtasks').firstOrNull;
+        final subtasks = subtasksElement?.findElements('subtask').map((subtaskElement) {
+          return Subtask(
+            id: subtaskElement.findElements('id').first.text,
+            taskId: taskElement.findElements('id').first.text,
+            title: subtaskElement.findElements('title').first.text,
+            createdAt: DateTime.parse(subtaskElement.findElements('createdAt').first.text),
+            isCompleted: subtaskElement.findElements('isCompleted').first.text.toLowerCase() == 'true',
+          );
+        }).toList() ?? [];
+
+        return Task(
+          id: taskElement.findElements('id').first.text,
+          title: taskElement.findElements('title').first.text,
+          description: taskElement.findElements('description').first.text,
+          createdAt: DateTime.parse(taskElement.findElements('createdAt').first.text),
+          isCompleted: taskElement.findElements('isCompleted').first.text.toLowerCase() == 'true',
+          subtasks: subtasks,
+        );
+      }).toList();
+
+      setState(() {
+        _tasks = tasks;
+      });
+    } catch (e) {
+      print('Error loading tasks: $e');
+    }
+  }
+
+  void _loadDropdownItems() async {
+    try {
+      final file = File('C:/Users/cesar/Documents/assets/tasks.xml');
+      final xmlString = await file.readAsString();
+      final document = XmlDocument.parse(xmlString);
+
+      final dropdown1Element = document.findAllElements('dropdown1').first;
+      final dropdown2Element = document.findAllElements('dropdown2').first;
+
+      final items1 = dropdown1Element.findElements('item').map((node) => node.text).toList();
+      final items2 = dropdown2Element.findElements('item').map((node) => node.text).toList();
+
+      setState(() {
+        _firstDropdownItems = items1;
+        _secondDropdownItems = items2;
+      });
+    } catch (e) {
+      setState(() {
+        _firstDropdownItems = [];
+        _secondDropdownItems = [];
+      });
+    }
+  }
 
   Future<void> _handlePurpleButtonPressed() async {
     try {
@@ -70,33 +149,32 @@ class _HomeScreenState extends State<HomeScreen> {
       final String firstValue = _safeString(_firstDropdownValue);
       final String secondValue = _safeString(_secondDropdownValue);
 
-      // Create XML elements with non-null text content
       selectionsElement.children.addAll([
-        XmlElement(XmlName('firstDropdown'))..children.add(XmlText(_safeString(_firstDropdownValue))),
-        XmlElement(XmlName('secondDropdown'))..children.add(XmlText(_safeString(_secondDropdownValue))),
+        XmlElement(XmlName('firstDropdown'))..children.add(XmlText(firstValue)),
+        XmlElement(XmlName('secondDropdown'))..children.add(XmlText(secondValue)),
       ]);
       
       // Add new tasks
       final taskListElement = XmlElement(XmlName('taskList'));
       for (var task in _tasks) {
-        final taskElement = XmlElement(XmlName('task'));
-        taskElement.children.addAll([
-          XmlElement(XmlName('id'))..children.add(XmlText(task.id)),
-          XmlElement(XmlName('title'))..children.add(XmlText(task.title)),
-          XmlElement(XmlName('description'))..children.add(XmlText(_safeString(task.description))),
-          XmlElement(XmlName('createdAt'))..children.add(XmlText(task.createdAt.toIso8601String())),
-          XmlElement(XmlName('isCompleted'))..children.add(XmlText(task.isCompleted.toString()))
-        ]);
+        final taskElement = XmlElement(XmlName('task'))
+          ..children.addAll([
+            XmlElement(XmlName('id'))..children.add(XmlText(task.id)),
+            XmlElement(XmlName('title'))..children.add(XmlText(task.title)),
+            XmlElement(XmlName('description'))..children.add(XmlText(_safeString(task.description))),
+            XmlElement(XmlName('createdAt'))..children.add(XmlText(task.createdAt.toIso8601String())),
+            XmlElement(XmlName('isCompleted'))..children.add(XmlText(task.isCompleted.toString())),
+          ]);
 
         final subtasksElement = XmlElement(XmlName('subtasks'));
         for (var subtask in task.subtasks) {
-          final subtaskElement = XmlElement(XmlName('subtask'));
-          subtaskElement.children.addAll([
-            XmlElement(XmlName('id'))..children.add(XmlText(subtask.id)),
-            XmlElement(XmlName('title'))..children.add(XmlText(subtask.title)),
-            XmlElement(XmlName('createdAt'))..children.add(XmlText(subtask.createdAt.toIso8601String())),
-            XmlElement(XmlName('isCompleted'))..children.add(XmlText(subtask.isCompleted.toString()))
-          ]);
+          final subtaskElement = XmlElement(XmlName('subtask'))
+            ..children.addAll([
+              XmlElement(XmlName('id'))..children.add(XmlText(subtask.id)),
+              XmlElement(XmlName('title'))..children.add(XmlText(subtask.title)),
+              XmlElement(XmlName('createdAt'))..children.add(XmlText(subtask.createdAt.toIso8601String())),
+              XmlElement(XmlName('isCompleted'))..children.add(XmlText(subtask.isCompleted.toString())),
+            ]);
           subtasksElement.children.add(subtaskElement);
         }
         taskElement.children.add(subtasksElement);
@@ -137,7 +215,6 @@ class _HomeScreenState extends State<HomeScreen> {
       final xmlString = await file.readAsString();
       final document = XmlDocument.parse(xmlString);
       
-      // Get the last project
       final projects = document.findAllElements('project').toList();
       if (projects.isEmpty) return;
       
@@ -146,15 +223,13 @@ class _HomeScreenState extends State<HomeScreen> {
       if (checkboxesElement == null) return;
 
       setState(() {
-        // Reset all values first
         _checkboxValues.updateAll((key, value) => false);
         
-        // Update with saved values
         for (var checkbox in checkboxesElement.findElements('checkbox')) {
           final label = checkbox.findElements('label').firstOrNull?.text;
-          final value = checkbox.findElements('value').firstOrNull?.text;
+          final val = checkbox.findElements('value').firstOrNull?.text;
           if (label != null && _checkboxValues.containsKey(label)) {
-            _checkboxValues[label] = value?.toLowerCase() == 'true';
+            _checkboxValues[label] = val?.toLowerCase() == 'true';
           }
         }
       });
@@ -163,47 +238,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _loadDropdownItems() async {
-    try {
-      final file = File('C:/Users/cesar/Documents/assets/tasks.xml');
-      final xmlString = await file.readAsString();
-      final document = XmlDocument.parse(xmlString);
-
-      // Assuming XML structure:
-      // <tasks>
-      //   <dropdown1>
-      //     <item>Option 1</item>
-      //     <item>Option 2</item>
-      //     <item>Option 3</item>
-      //   </dropdown1>
-      //   <dropdown2>
-      //     <item>Choice A</item>
-      //     <item>Choice B</item>
-      //     <item>Choice C</item>
-      //   </dropdown2>
-      // </tasks>
-      final dropdown1Element = document.findAllElements('dropdown1').first;
-      final dropdown2Element = document.findAllElements('dropdown2').first;
-
-      List<String> items1 = dropdown1Element.findElements('item').map((node) => node.text).toList();
-      List<String> items2 = dropdown2Element.findElements('item').map((node) => node.text).toList();
-
-      setState(() {
-        _firstDropdownItems = items1;
-        _secondDropdownItems = items2;
-      });
-    } catch (e) {
-      // Fallback to no items on error
-      setState(() {
-        _firstDropdownItems = [];
-        _secondDropdownItems = [];
-      });
-    }
-  }
-
   Future<void> _handleSave() async {
     try {
-      // Check if at least one checkbox is checked
       bool hasCheckedBox = _checkboxValues.values.any((value) => value);
       if (!hasCheckedBox && _textController.text.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -218,12 +254,10 @@ class _HomeScreenState extends State<HomeScreen> {
       final directory = Directory(r'C:\Users\cesar\Documents\assets');
       final file = File(r'C:\Users\cesar\Documents\assets\projects.xml');
 
-      // Create directory if it doesn't exist
       if (!await directory.exists()) {
         await directory.create(recursive: true);
       }
 
-      // Read and parse existing XML or create new one
       XmlDocument document;
       if (await file.exists()) {
         final xmlString = await file.readAsString();
@@ -243,7 +277,6 @@ class _HomeScreenState extends State<HomeScreen> {
       final projects = document.findAllElements('project');
       XmlElement? projectToUpdate;
       
-      // Try to find existing project
       for (var project in projects) {
         final descriptionElement = project.findElements('description').firstOrNull;
         if (descriptionElement != null && descriptionElement.text == text) {
@@ -252,32 +285,28 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       }
 
-      // If project doesn't exist, create new one
       if (projectToUpdate == null) {
-        final projectsRoot = document.findAllElements('projects').first;
+        final projectsRootElement = document.findAllElements('projects').first;
         projectToUpdate = XmlElement(XmlName('project'));
         
-        // Add proper indentation
-        projectsRoot.children.add(XmlText('\n  '));
-        projectsRoot.children.add(projectToUpdate);
-        projectsRoot.children.add(XmlText('\n'));
+        projectsRootElement.children.add(XmlText('\n  '));
+        projectsRootElement.children.add(projectToUpdate);
+        projectsRootElement.children.add(XmlText('\n'));
         
-        // Add description with indentation
         projectToUpdate.children.add(XmlText('    '));
         projectToUpdate.children.add(XmlElement(XmlName('description'))..children.add(XmlText(text)));
         projectToUpdate.children.add(XmlText('\n  '));
       }
 
-      // Update or create checkboxes element
+      // Remove existing checkboxes element
       projectToUpdate.findElements('checkboxes').forEach((element) => element.remove());
-      
-      // Create new checkboxes element with indentation
+
+      // Add new checkboxes element
       projectToUpdate.children.add(XmlText('    '));
       final checkboxesElement = XmlElement(XmlName('checkboxes'));
       projectToUpdate.children.add(checkboxesElement);
       projectToUpdate.children.add(XmlText('\n  '));
       
-      // Add checkbox elements with proper indentation
       _checkboxValues.forEach((label, value) {
         checkboxesElement.children.add(XmlText('\n      '));
         final labelElement = XmlElement(XmlName('label'))..children.add(XmlText(label));
@@ -291,10 +320,8 @@ class _HomeScreenState extends State<HomeScreen> {
         checkboxesElement.children.add(checkboxElement);
       });
 
-      // Write updated XML back to file
       await file.writeAsString(document.toXmlString(pretty: true));
       
-      // Clear text field after successful save
       _textController.clear();
       
       ScaffoldMessenger.of(context).showSnackBar(
@@ -342,13 +369,15 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context) => AnimatedTaskDialog(
         onTaskCreated: (title, description) {
           setState(() {
-            _tasks.add(Task(
-              id: DateTime.now().toString(),
-              title: title,
-              description: description,
-              createdAt: DateTime.now(),
-              isExpanded: false,
-            ));
+            _tasks.add(
+              Task(
+                id: DateTime.now().toString(),
+                title: title,
+                description: description,
+                createdAt: DateTime.now(),
+                isExpanded: false,
+              ),
+            );
           });
         },
       ),
@@ -393,10 +422,16 @@ class _HomeScreenState extends State<HomeScreen> {
       if (taskIndex != -1) {
         final subtaskIndex = _tasks[taskIndex].subtasks.indexWhere((subtask) => subtask.id == subtaskId);
         if (subtaskIndex != -1) {
-          _tasks[taskIndex].subtasks[subtaskIndex].isCompleted = !_tasks[taskIndex].subtasks[subtaskIndex].isCompleted;
+          _tasks[taskIndex].subtasks[subtaskIndex].isCompleted =
+              !_tasks[taskIndex].subtasks[subtaskIndex].isCompleted;
         }
       }
     });
+  }
+
+  // Called whenever text in the AnimatedSearchBar changes
+  void _handleTextChanged(String query) {
+    // For now, we do nothing. You can implement search here if needed.
   }
 
   @override
@@ -408,6 +443,7 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
+                // Top row with search bar and purple button
                 Row(
                   children: [
                     Expanded(
@@ -424,6 +460,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                 ),
+                // Checkboxes
                 AnimatedCheckboxGroup(
                   labels: const ['MR REC', 'MR PKG', 'COM', 'DEV1', 'DEV2', 'REC1', 'REC2'],
                   values: _checkboxValues,
@@ -433,7 +470,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     });
                   },
                 ),
+
                 const SizedBox(height: 16),
+                // Two dropdowns plus add button
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -444,10 +483,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             hint: 'Select first option',
                             items: _firstDropdownItems,
                             value: _firstDropdownValue,
-                            onChanged: (String? newValue) {
+                            onChanged: (String? newValue) async {
                               setState(() {
                                 _firstDropdownValue = newValue;
                               });
+                              await _loadTasksFromXML();
                             },
                           ),
                           const SizedBox(height: 16),
@@ -466,16 +506,20 @@ class _HomeScreenState extends State<HomeScreen> {
                         hint: 'Select second option',
                         items: _secondDropdownItems,
                         value: _secondDropdownValue,
-                        onChanged: (String? newValue) {
+                        onChanged: (String? newValue) async {
                           setState(() {
                             _secondDropdownValue = newValue;
                           });
+                          await _loadTasksFromXML();
                         },
                       ),
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 24),
+                
+                // AnimatedTaskList
                 if (_tasks.isNotEmpty)
                   AnimatedTaskList(
                     tasks: _tasks,
@@ -491,46 +535,5 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
-  }
-
-  void _handleTextChanged(String text) async {
-    try {
-      final file = File('C:/Users/cesar/Documents/assets/projects.xml');
-      if (!await file.exists()) return;
-
-      final xmlString = await file.readAsString();
-      final document = XmlDocument.parse(xmlString);
-      
-      for (var project in document.findAllElements('project')) {
-        final descriptionElement = project.findElements('description').firstOrNull;
-        if (descriptionElement != null && descriptionElement.text == text.trim()) {
-          final checkboxesElement = project.findElements('checkboxes').firstOrNull;
-          if (checkboxesElement == null) return;
-
-          setState(() {
-            // Reset all values first
-            _checkboxValues.updateAll((key, value) => false);
-            
-            // Update with saved values
-            for (var checkbox in checkboxesElement.findElements('checkbox')) {
-              final label = checkbox.findElements('label').firstOrNull?.text;
-              final value = checkbox.findElements('value').firstOrNull?.text;
-              if (label != null && _checkboxValues.containsKey(label)) {
-                _checkboxValues[label] = value?.toLowerCase() == 'true';
-              }
-            }
-          });
-          break;
-        }
-      }
-    } catch (e) {
-      print('Error loading project checkboxes: $e');
-    }
-  }
-
-  @override
-  void dispose() {
-    _textController.dispose();
-    super.dispose();
   }
 }
