@@ -45,6 +45,90 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadLastProject();
   }
 
+  String _safeString(String? value) => value ?? '';
+
+  Future<void> _handlePurpleButtonPressed() async {
+    try {
+      final tasksFile = File('C:/Users/cesar/Documents/assets/tasks.xml');
+      XmlDocument existingDocument;
+      
+      if (await tasksFile.exists()) {
+        final xmlString = await tasksFile.readAsString();
+        existingDocument = XmlDocument.parse(xmlString);
+      } else {
+        existingDocument = XmlDocument([
+          XmlProcessing('xml', 'version="1.0" encoding="UTF-8"'),
+          XmlElement(XmlName('tasks'))
+        ]);
+      }
+
+      // Add new selections
+      final tasksRoot = existingDocument.findAllElements('tasks').first;
+      final selectionsElement = XmlElement(XmlName('selections'));
+
+      // Create non-null strings for values
+      final String firstValue = _safeString(_firstDropdownValue);
+      final String secondValue = _safeString(_secondDropdownValue);
+
+      // Create XML elements with non-null text content
+      selectionsElement.children.addAll([
+        XmlElement(XmlName('firstDropdown'))..children.add(XmlText(_safeString(_firstDropdownValue))),
+        XmlElement(XmlName('secondDropdown'))..children.add(XmlText(_safeString(_secondDropdownValue))),
+      ]);
+      
+      // Add new tasks
+      final taskListElement = XmlElement(XmlName('taskList'));
+      for (var task in _tasks) {
+        final taskElement = XmlElement(XmlName('task'));
+        taskElement.children.addAll([
+          XmlElement(XmlName('id'))..children.add(XmlText(task.id)),
+          XmlElement(XmlName('title'))..children.add(XmlText(task.title)),
+          XmlElement(XmlName('description'))..children.add(XmlText(_safeString(task.description))),
+          XmlElement(XmlName('createdAt'))..children.add(XmlText(task.createdAt.toIso8601String())),
+          XmlElement(XmlName('isCompleted'))..children.add(XmlText(task.isCompleted.toString()))
+        ]);
+
+        final subtasksElement = XmlElement(XmlName('subtasks'));
+        for (var subtask in task.subtasks) {
+          final subtaskElement = XmlElement(XmlName('subtask'));
+          subtaskElement.children.addAll([
+            XmlElement(XmlName('id'))..children.add(XmlText(subtask.id)),
+            XmlElement(XmlName('title'))..children.add(XmlText(subtask.title)),
+            XmlElement(XmlName('createdAt'))..children.add(XmlText(subtask.createdAt.toIso8601String())),
+            XmlElement(XmlName('isCompleted'))..children.add(XmlText(subtask.isCompleted.toString()))
+          ]);
+          subtasksElement.children.add(subtaskElement);
+        }
+        taskElement.children.add(subtasksElement);
+        taskListElement.children.add(taskElement);
+      }
+
+      // Add proper indentation
+      tasksRoot.children.addAll([
+        XmlText('\n  '),
+        selectionsElement,
+        XmlText('\n  '),
+        taskListElement,
+        XmlText('\n')
+      ]);
+
+      await tasksFile.writeAsString(existingDocument.toXmlString(pretty: true));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Tasks saved successfully'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error saving tasks: $e'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   void _loadLastProject() async {
     try {
       final file = File('C:/Users/cesar/Documents/assets/projects.xml');
@@ -336,9 +420,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(width: 8),
                     PurpleButton(
-                      onPressed: () {
-                        // TODO: Implement purple button action
-                      },
+                      onPressed: _handlePurpleButtonPressed,
                     ),
                   ],
                 ),
