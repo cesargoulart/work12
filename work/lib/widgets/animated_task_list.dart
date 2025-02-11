@@ -1,11 +1,9 @@
-// lib/widgets/animated_task_list.dart
 import 'package:flutter/material.dart';
 import '../models/task_model.dart';
 import '../models/subtask_model.dart';
 import '../helpers/task_status_helper.dart';
-import 'animated_task_expand_button.dart';
 import 'animated_subtask_list.dart';
-import 'animated_subtask_dialog.dart';
+import 'subtask_creation_handler.dart';
 
 class AnimatedTaskList extends StatelessWidget {
   final List<Task> tasks;
@@ -76,16 +74,6 @@ class _AnimatedTaskItemState extends State<AnimatedTaskItem>
   late Animation<double> _heightAnimation;
   late Animation<Color?> _colorAnimation;
   bool _isHovering = false;
-
-  void _showSubtaskDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AnimatedSubtaskDialog(
-        taskId: widget.task.id,
-        onSubtaskCreated: widget.onSubtaskCreated,
-      ),
-    );
-  }
 
   @override
   void initState() {
@@ -169,7 +157,6 @@ class _AnimatedTaskItemState extends State<AnimatedTaskItem>
             child: Container(
               margin: const EdgeInsets.symmetric(vertical: 8),
               decoration: BoxDecoration(
-                // Always yellow when has uncompleted subtasks
                 color: hasUncompleted ? const Color.fromARGB(255, 255, 243, 231) : Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
@@ -192,10 +179,9 @@ class _AnimatedTaskItemState extends State<AnimatedTaskItem>
                     leading: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        AnimatedTaskExpandButton(
-                          isExpanded: widget.task.isExpanded,
-                          onPressed: widget.onExpand,
-                          onLongPress: _showSubtaskDialog,
+                        SubtaskCreationHandler(
+                          taskId: widget.task.id,
+                          onSubtaskCreated: widget.onSubtaskCreated,
                         ),
                         const SizedBox(width: 12),
                         Checkbox(
@@ -238,6 +224,7 @@ class _AnimatedTaskItemState extends State<AnimatedTaskItem>
                       color: Colors.red.withOpacity(0.8),
                       onPressed: widget.onDelete,
                     ),
+                    onTap: widget.onToggle,
                   ),
                   if (widget.task.isExpanded)
                     AnimatedBuilder(
