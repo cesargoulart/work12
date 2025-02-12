@@ -14,37 +14,48 @@ class XmlService {
     final builder = XmlBuilder();
     builder.processing('xml', 'version="1.0" encoding="UTF-8"');
     
-    builder.element('data', nest: () {
-      // Add dropdowns
-      builder.element('dropdowns', nest: () {
-        builder.element('dropdown1', nest: dropdown1Value ?? '');
-        builder.element('dropdown2', nest: dropdown2Value ?? '');
-      });
-
-      // Add tasks
-      builder.element('tasks', nest: () {
-        for (var task in tasks) {
-          builder.element('task', nest: () {
-            builder.element('title', nest: task['title']);
-            builder.element('description', nest: task['description'] ?? '');
-            builder.element('status', nest: task['status'] ?? '');
+    builder.element('registData', nest: () {
+      // All data in main group
+      builder.element('mainGroup', nest: () {
+        // Selections
+        builder.element('selections', nest: () {
+          builder.element('dropdown1', nest: () {
+            builder.element('value', nest: dropdown1Value ?? '');
           });
-        }
-      });
-
-      // Add subtasks
-      builder.element('subtasks', nest: () {
-        for (var subtask in subtasks) {
-          builder.element('subtask', nest: () {
-            builder.element('title', nest: subtask['title']);
-            builder.element('parentTaskId', nest: subtask['parentTaskId'].toString());
-            builder.element('status', nest: subtask['status'] ?? '');
+          builder.element('dropdown2', nest: () {
+            builder.element('value', nest: dropdown2Value ?? '');
           });
-        }
+        });
+
+        // Tasks
+        builder.element('tasks', nest: () {
+          for (var task in tasks) {
+            builder.element('task', nest: () {
+              builder.element('title', nest: task['title']);
+              builder.element('description', nest: task['description']);
+              builder.element('status', nest: task['status']);
+              
+              // Add related subtasks within each task
+              builder.element('subtasks', nest: () {
+                final taskSubtasks = subtasks.where(
+                  (subtask) => subtask['parentTaskId'] == task['id']
+                ).toList();
+                
+                for (var subtask in taskSubtasks) {
+                  builder.element('subtask', nest: () {
+                    builder.element('title', nest: subtask['title']);
+                    builder.element('status', nest: subtask['status']);
+                  });
+                }
+              });
+            });
+          }
+        });
       });
     });
 
-    final xmlString = builder.buildDocument().toString();
-    await File(registPath).writeAsString(xmlString);
+    final xmlDoc = builder.buildDocument();
+    final prettyXml = xmlDoc.toXmlString(pretty: true, indent: '  ');
+    await File(registPath).writeAsString(prettyXml);
   }
 }

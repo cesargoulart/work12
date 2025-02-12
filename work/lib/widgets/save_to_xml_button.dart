@@ -19,6 +19,7 @@ class SaveToXmlButton extends StatelessWidget {
     try {
       // Convert tasks and subtasks for XML
       final List<Map<String, dynamic>> tasksList = tasks.map((task) => {
+        'id': task.id,
         'title': task.title,
         'description': task.description ?? '',
         'status': task.isCompleted.toString(),
