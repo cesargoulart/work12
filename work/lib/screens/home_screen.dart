@@ -3,7 +3,7 @@ import 'package:xml/xml.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import '../widgets/animated_search_bar.dart';
-import '../widgets/purple_button.dart';
+import '../widgets/save_to_xml_button.dart';
 import '../widgets/animated_checkbox_group.dart';
 import '../widgets/animated_dropdown.dart';
 import '../widgets/animated_add_button.dart';
@@ -455,8 +455,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    PurpleButton(
-                      onPressed: _handlePurpleButtonPressed,
+                    SaveToXmlButton(
+                      dropdown1Value: _firstDropdownValue,
+                      dropdown2Value: _secondDropdownValue,
+                      tasks: _tasks,
                     ),
                   ],
                 ),
