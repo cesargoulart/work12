@@ -10,6 +10,7 @@ import '../widgets/animated_dropdown.dart';
 import '../widgets/animated_add_button.dart';
 import '../widgets/animated_task_dialog.dart';
 import '../widgets/animated_task_list.dart';
+import '../widgets/large_text_box.dart';
 import '../models/task_model.dart';
 import '../models/subtask_model.dart';
 
@@ -446,102 +447,121 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                // Top row with search bar and purple button
-                Row(
-                  children: [
-                    Expanded(
-                      child: AnimatedSearchBar(
-                        controller: _textController,
-                        onSave: _handleSave,
-                        onHelpPressed: _handleHelp,
-                        onChanged: _handleTextChanged,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    SaveToXmlButton(
-                      dropdown1Value: _firstDropdownValue,
-                      dropdown2Value: _secondDropdownValue,
-                      tasks: _tasks,
-                    ),
-                  ],
-                ),
-                // Checkboxes
-                AnimatedCheckboxGroup(
-                  labels: const ['MR REC', 'MR PKG', 'COM', 'DEV1', 'DEV2', 'REC1', 'REC2'],
-                  values: _checkboxValues,
-                  onChanged: (label, value) {
-                    setState(() {
-                      _checkboxValues[label] = value;
-                    });
-                  },
-                ),
-
-                const SizedBox(height: 16),
-                // Two dropdowns plus add button
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      // Top row with search bar and purple button
+                      Row(
                         children: [
-                          AnimatedDropdown(
-                            hint: 'Select first option',
-                            items: _firstDropdownItems,
-                            value: _firstDropdownValue,
-                            onChanged: (String? newValue) async {
-                              setState(() {
-                                _firstDropdownValue = newValue;
-                              });
-                              await _loadTasks();
-                            },
+                          Expanded(
+                            child: AnimatedSearchBar(
+                              controller: _textController,
+                              onSave: _handleSave,
+                              onHelpPressed: _handleHelp,
+                              onChanged: _handleTextChanged,
+                            ),
                           ),
-                          const SizedBox(height: 16),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: AnimatedAddButton(
-                              onPressed: _handleAddPressed,
+                          const SizedBox(width: 8),
+                          SaveToXmlButton(
+                            dropdown1Value: _firstDropdownValue,
+                            dropdown2Value: _secondDropdownValue,
+                            tasks: _tasks,
+                          ),
+                        ],
+                      ),
+                      // Checkboxes
+                      AnimatedCheckboxGroup(
+                        labels: const [
+                          'MR REC',
+                          'MR PKG',
+                          'COM',
+                          'DEV1',
+                          'DEV2',
+                          'REC1',
+                          'REC2'
+                        ],
+                        values: _checkboxValues,
+                        onChanged: (label, value) {
+                          setState(() {
+                            _checkboxValues[label] = value;
+                          });
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
+                      // Two dropdowns plus add button
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              children: [
+                                AnimatedDropdown(
+                                  hint: 'Select first option',
+                                  items: _firstDropdownItems,
+                                  value: _firstDropdownValue,
+                                  onChanged: (String? newValue) async {
+                                    setState(() {
+                                      _firstDropdownValue = newValue;
+                                    });
+                                    await _loadTasks();
+                                  },
+                                ),
+                                const SizedBox(height: 16),
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: AnimatedAddButton(
+                                    onPressed: _handleAddPressed,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: AnimatedDropdown(
+                              hint: 'Select second option',
+                              items: _secondDropdownItems,
+                              value: _secondDropdownValue,
+                              onChanged: (String? newValue) async {
+                                setState(() {
+                                  _secondDropdownValue = newValue;
+                                });
+                                await _loadTasks();
+                              },
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: AnimatedDropdown(
-                        hint: 'Select second option',
-                        items: _secondDropdownItems,
-                        value: _secondDropdownValue,
-                        onChanged: (String? newValue) async {
-                          setState(() {
-                            _secondDropdownValue = newValue;
-                          });
-                          await _loadTasks();
-                        },
-                      ),
-                    ),
-                  ],
-                ),
 
-                const SizedBox(height: 24),
-                
-                // AnimatedTaskList
-                if (_tasks.isNotEmpty)
-                  AnimatedTaskList(
-                    tasks: _tasks,
-                    onTaskToggle: _handleTaskToggle,
-                    onTaskDelete: _handleTaskDelete,
-                    onTaskExpand: _handleTaskExpand,
-                    onSubtaskCreated: _handleSubtaskCreated,
-                    onSubtaskToggle: _handleSubtaskToggle,
+                      const SizedBox(height: 24),
+
+                      // AnimatedTaskList
+                      if (_tasks.isNotEmpty)
+                        AnimatedTaskList(
+                          tasks: _tasks,
+                          onTaskToggle: _handleTaskToggle,
+                          onTaskDelete: _handleTaskDelete,
+                          onTaskExpand: _handleTaskExpand,
+                          onSubtaskCreated: _handleSubtaskCreated,
+                          onSubtaskToggle: _handleSubtaskToggle,
+                        ),
+                    ],
                   ),
-              ],
+                ),
+              ),
             ),
-          ),
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: LargeTextBox(),
+            ),
+          ],
         ),
       ),
     );
