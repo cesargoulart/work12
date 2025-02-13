@@ -1,7 +1,25 @@
 import 'package:flutter/material.dart';
 
-class LargeTextBox extends StatelessWidget {
-  const LargeTextBox({super.key});
+class LargeTextBox extends StatefulWidget {
+  final Function(String) onTextChanged;
+  
+  const LargeTextBox({
+    super.key,
+    required this.onTextChanged,
+  });
+
+  @override
+  State<LargeTextBox> createState() => _LargeTextBoxState();
+}
+
+class _LargeTextBoxState extends State<LargeTextBox> {
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +38,7 @@ class LargeTextBox extends StatelessWidget {
         ],
       ),
       child: TextField(
+        controller: _controller,
         maxLines: null, // Allows for multiple lines
         keyboardType: TextInputType.multiline,
         style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
@@ -28,6 +47,7 @@ class LargeTextBox extends StatelessWidget {
           hintStyle: TextStyle(color: Colors.grey[400], fontWeight: FontWeight.normal),
           border: InputBorder.none,
         ),
+        onChanged: widget.onTextChanged,
       ),
     );
   }

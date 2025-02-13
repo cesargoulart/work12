@@ -11,8 +11,10 @@ import '../widgets/animated_add_button.dart';
 import '../widgets/animated_task_dialog.dart';
 import '../widgets/animated_task_list.dart';
 import '../widgets/large_text_box.dart';
+import '../widgets/purple_button.dart';
 import '../models/task_model.dart';
 import '../models/subtask_model.dart';
+import '../features/handle_purple_button_press.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -557,9 +559,23 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: LargeTextBox(),
+            Row(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: LargeTextBox(
+                      onTextChanged: HandlePurpleButtonPress.updateText,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: PurpleButton(
+                    onPressed: HandlePurpleButtonPress.handlePress,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
