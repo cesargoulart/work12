@@ -52,9 +52,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadTasks() async {
     final tasks = await XmlService.loadTasksFromRegist(_firstDropdownValue, _secondDropdownValue);
+    final textContent = await XmlService.loadTextContent(_firstDropdownValue, _secondDropdownValue);
+    
     setState(() {
       _tasks = tasks;
     });
+    
+    HandlePurpleButtonPress.setText(textContent);
   }
 
   String _safeString(String? value) => value ?? '';
@@ -566,6 +570,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.all(16.0),
                     child: LargeTextBox(
                       onTextChanged: HandlePurpleButtonPress.updateText,
+                      controller: HandlePurpleButtonPress.textController,
                     ),
                   ),
                 ),

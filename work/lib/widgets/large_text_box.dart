@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 
 class LargeTextBox extends StatefulWidget {
   final Function(String) onTextChanged;
+  final String? initialText;
+  final TextEditingController? controller;
   
   const LargeTextBox({
     super.key,
     required this.onTextChanged,
+    this.initialText,
+    this.controller,
   });
 
   @override
@@ -13,11 +17,27 @@ class LargeTextBox extends StatefulWidget {
 }
 
 class _LargeTextBoxState extends State<LargeTextBox> {
-  final TextEditingController _controller = TextEditingController();
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = widget.controller ?? TextEditingController(text: widget.initialText);
+  }
+
+  @override
+  void didUpdateWidget(LargeTextBox oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.controller == null && widget.initialText != oldWidget.initialText) {
+      _controller.text = widget.initialText ?? '';
+    }
+  }
 
   @override
   void dispose() {
-    _controller.dispose();
+    if (widget.controller == null) {
+      _controller.dispose();
+    }
     super.dispose();
   }
 

@@ -7,6 +7,34 @@ import '../models/subtask_model.dart';
 class XmlService {
   static const String registPath = 'C:/Users/cesar/Documents/assets/regist.xml';
 
+  static Future<String?> loadTextContent(String? dropdown1Value, String? dropdown2Value) async {
+    try {
+      final file = File(registPath);
+      if (!await file.exists()) return null;
+
+      final xmlString = await file.readAsString();
+      final document = XmlDocument.parse(xmlString);
+
+      // Find matching mainGroup
+      for (var mainGroup in document.findAllElements('mainGroup')) {
+        final selections = mainGroup.findElements('selections').firstOrNull;
+        if (selections == null) continue;
+
+        final savedDropdown1 = selections.findElements('dropdown1').firstOrNull?.findElements('value').firstOrNull?.text;
+        final savedDropdown2 = selections.findElements('dropdown2').firstOrNull?.findElements('value').firstOrNull?.text;
+
+        if (savedDropdown1 == dropdown1Value && savedDropdown2 == dropdown2Value) {
+          final textContent = mainGroup.findElements('textContent').firstOrNull;
+          return textContent?.text;
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Error loading text content from regist.xml: $e');
+      return null;
+    }
+  }
+
   static Future<List<Task>> loadTasksFromRegist(String? dropdown1Value, String? dropdown2Value) async {
     try {
       final file = File(registPath);

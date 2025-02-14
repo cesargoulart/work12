@@ -2,15 +2,19 @@ import 'package:flutter/material.dart';
 import 'save_textbox_to_regist.dart';
 
 class HandlePurpleButtonPress {
-  static final ValueNotifier<String> textNotifier = ValueNotifier<String>('');
+  static final TextEditingController textController = TextEditingController();
 
   static void updateText(String newText) {
-    textNotifier.value = newText;
+    textController.text = newText;
+  }
+
+  static void setText(String? text) {
+    textController.text = text ?? '';
   }
 
   static Future<void> handlePress() async {
     try {
-      await SaveTextboxToRegist.saveText(textNotifier.value);
+      await SaveTextboxToRegist.saveText(textController.text);
     } catch (e) {
       print('Error saving text: $e');
     }
