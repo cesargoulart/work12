@@ -3,6 +3,7 @@ import 'package:xml/xml.dart';
 import 'package:path/path.dart' as path;
 import '../models/task_model.dart';
 import '../models/subtask_model.dart';
+import '../models/project_model.dart';
 
 class XmlService {
   static const String registPath = 'C:/Users/cesar/Documents/assets/regist.xml';
@@ -36,6 +37,40 @@ class XmlService {
     }
   }
 
+  static Future<XmlDocument> loadXmlDocument(String filePath) async {
+    final file = File(filePath);
+    if (!await file.exists()) {
+      throw Exception('File not found: $filePath');
+    }
+    final xmlString = await file.readAsString();
+    return XmlDocument.parse(xmlString);
+  }
+
+  static Future<Project?> loadProjectByDescription(String description) async {
+    try {
+      final document = await loadXmlDocument(projectsPath);
+      final projectElement = document.findAllElements('project').firstWhere(
+        (element) => element.findElements('description').single.text == description,
+        orElse: () => XmlElement(XmlName('empty')),
+      );
+
+      if (projectElement.name.local != 'empty') {
+        final checkboxes = projectElement.findElements('checkboxes').expand((element) {
+          return element.findElements('checkbox').map((checkboxElement) {
+            final label = checkboxElement.findElements('label').single.text;
+            final value = checkboxElement.findElements('value').single.text == 'true';
+            return CheckboxModel(label: label, value: value);
+          });
+        }).toList();
+
+        return Project(description: description, checkboxes: checkboxes);
+      }
+    } catch (e) {
+      print('Error loading project by description: $e');
+    }
+    return null;
+  }
+
   static Future<List<String>> loadProjectDescriptions() async {
     try {
       final file = File(projectsPath);
@@ -48,7 +83,7 @@ class XmlService {
           .map((e) => e.text)
           .where((desc) => desc.isNotEmpty)
           .toList();
-      return descriptions.reversed.toList(); // Return in reverse order
+      return descriptions.reversed.toList();
     } catch (e) {
       print('Error loading descriptions from projects.xml: $e');
       return [];
@@ -63,7 +98,6 @@ class XmlService {
       final xmlString = await file.readAsString();
       final document = XmlDocument.parse(xmlString);
 
-      // Load tasks from the mainGroup that matches the current dropdown values
       for (var mainGroup in document.findAllElements('mainGroup')) {
         final selections = mainGroup.findElements('selections').firstOrNull;
         if (selections == null) continue;
@@ -92,7 +126,7 @@ class XmlService {
               );
             }).toList() ?? [];
 
-            final hasSubtasks = !subtasks.isEmpty;
+            final hasSubtasks = subtasks.isNotEmpty;
 
             return Task(
               id: id,
@@ -123,7 +157,6 @@ class XmlService {
     try {
       XmlDocument document;
       
-      // Load or create document
       if (await File(registPath).exists()) {
         final xmlString = await File(registPath).readAsString();
         try {
@@ -141,7 +174,6 @@ class XmlService {
         ]);
       }
 
-      // Find existing mainGroup with matching selections
       XmlElement? existingMainGroup;
       for (var mainGroup in document.findAllElements('mainGroup')) {
         final selections = mainGroup.findElements('selections').firstOrNull;
@@ -157,7 +189,6 @@ class XmlService {
       }
 
       if (existingMainGroup != null) {
-        // Update existing mainGroup
         var tasksElement = existingMainGroup.findElements('tasks').firstOrNull;
         if (tasksElement == null) {
           tasksElement = XmlElement(XmlName('tasks'));
@@ -166,129 +197,121 @@ class XmlService {
         tasksElement.children.clear();
 
         if (tasks.isNotEmpty) {
-          tasksElement.children.add(XmlText('\n      ')); // Initial indentation
-          
+          tasksElement.children.add(XmlText('\n      '));
           for (var task in tasks) {
             final taskElement = XmlElement(XmlName('task'))
               ..children.addAll([
-                XmlText('\n        '), // Indentation
+                XmlText('\n        '),
                 XmlElement(XmlName('title'))..children.add(XmlText(task['title'])),
-                XmlText('\n        '), // Indentation
+                XmlText('\n        '),
                 XmlElement(XmlName('description'))..children.add(XmlText(task['description'])),
-                XmlText('\n        '), // Indentation
+                XmlText('\n        '),
                 XmlElement(XmlName('status'))..children.add(XmlText(task['status'])),
-                XmlText('\n        '), // Indentation
+                XmlText('\n        '),
               ]);
 
-            // Add subtasks
             final subtasksElement = XmlElement(XmlName('subtasks'));
             final taskSubtasks = subtasks.where(
               (subtask) => subtask['parentTaskId'] == task['id']
             ).toList();
 
             if (taskSubtasks.isNotEmpty) {
-              subtasksElement.children.add(XmlText('\n          ')); // Indentation
+              subtasksElement.children.add(XmlText('\n          '));
               for (var subtask in taskSubtasks) {
                 subtasksElement.children.addAll([
                   XmlElement(XmlName('subtask'))
                     ..children.addAll([
-                      XmlText('\n            '), // Indentation
+                      XmlText('\n            '),
                       XmlElement(XmlName('title'))..children.add(XmlText(subtask['title'])),
-                      XmlText('\n            '), // Indentation
+                      XmlText('\n            '),
                       XmlElement(XmlName('status'))..children.add(XmlText(subtask['status'])),
-                      XmlText('\n          '), // Indentation
+                      XmlText('\n          '),
                     ]),
                 ]);
               }
             }
 
             taskElement.children.add(subtasksElement);
-            taskElement.children.add(XmlText('\n      ')); // Indentation
+            taskElement.children.add(XmlText('\n      '));
             tasksElement.children.add(taskElement);
           }
-          tasksElement.children.add(XmlText('\n    ')); // Final indentation
+          tasksElement.children.add(XmlText('\n    '));
         }
       } else {
-        // Create new mainGroup
-        final newMainGroup = XmlElement(XmlName('mainGroup'));
-        newMainGroup.children.addAll([
-          XmlText('\n    '), // Indentation
-          XmlElement(XmlName('selections'))
-            ..children.addAll([
-              XmlText('\n      '), // Indentation
-              XmlElement(XmlName('dropdown1'))
-                ..children.add(
-                  XmlElement(XmlName('value'))
-                    ..children.add(XmlText(dropdown1Value ?? '')),
-                ),
-              XmlText('\n      '), // Indentation
-              XmlElement(XmlName('dropdown2'))
-                ..children.add(
-                  XmlElement(XmlName('value'))
-                    ..children.add(XmlText(dropdown2Value ?? '')),
-                ),
-              XmlText('\n    '), // Indentation
-            ]),
-          XmlText('\n    '), // Indentation
-        ]);
+        final newMainGroup = XmlElement(XmlName('mainGroup'))
+          ..children.addAll([
+            XmlText('\n    '),
+            XmlElement(XmlName('selections'))
+              ..children.addAll([
+                XmlText('\n      '),
+                XmlElement(XmlName('dropdown1'))
+                  ..children.add(
+                    XmlElement(XmlName('value'))
+                      ..children.add(XmlText(dropdown1Value ?? '')),
+                  ),
+                XmlText('\n      '),
+                XmlElement(XmlName('dropdown2'))
+                  ..children.add(
+                    XmlElement(XmlName('value'))
+                      ..children.add(XmlText(dropdown2Value ?? '')),
+                  ),
+                XmlText('\n    '),
+              ]),
+            XmlText('\n    '),
+          ]);
 
-        // Add tasks element
         final tasksElement = XmlElement(XmlName('tasks'));
         if (tasks.isNotEmpty) {
-          tasksElement.children.add(XmlText('\n      ')); // Initial indentation
-          
+          tasksElement.children.add(XmlText('\n      '));
           for (var task in tasks) {
             final taskElement = XmlElement(XmlName('task'))
               ..children.addAll([
-                XmlText('\n        '), // Indentation
+                XmlText('\n        '),
                 XmlElement(XmlName('title'))..children.add(XmlText(task['title'])),
-                XmlText('\n        '), // Indentation
+                XmlText('\n        '),
                 XmlElement(XmlName('description'))..children.add(XmlText(task['description'])),
-                XmlText('\n        '), // Indentation
+                XmlText('\n        '),
                 XmlElement(XmlName('status'))..children.add(XmlText(task['status'])),
-                XmlText('\n        '), // Indentation
+                XmlText('\n        '),
               ]);
 
-            // Add subtasks
             final subtasksElement = XmlElement(XmlName('subtasks'));
             final taskSubtasks = subtasks.where(
               (subtask) => subtask['parentTaskId'] == task['id']
             ).toList();
 
             if (taskSubtasks.isNotEmpty) {
-              subtasksElement.children.add(XmlText('\n          ')); // Indentation
+              subtasksElement.children.add(XmlText('\n          '));
               for (var subtask in taskSubtasks) {
                 subtasksElement.children.addAll([
                   XmlElement(XmlName('subtask'))
                     ..children.addAll([
-                      XmlText('\n            '), // Indentation
+                      XmlText('\n            '),
                       XmlElement(XmlName('title'))..children.add(XmlText(subtask['title'])),
-                      XmlText('\n            '), // Indentation
+                      XmlText('\n            '),
                       XmlElement(XmlName('status'))..children.add(XmlText(subtask['status'])),
-                      XmlText('\n          '), // Indentation
+                      XmlText('\n          '),
                     ]),
                 ]);
               }
             }
 
             taskElement.children.add(subtasksElement);
-            taskElement.children.add(XmlText('\n      ')); // Indentation
+            taskElement.children.add(XmlText('\n      '));
             tasksElement.children.add(taskElement);
           }
-          tasksElement.children.add(XmlText('\n    ')); // Final indentation
+          tasksElement.children.add(XmlText('\n    '));
         }
 
         newMainGroup.children.add(tasksElement);
-        newMainGroup.children.add(XmlText('\n  ')); // Final indentation
+        newMainGroup.children.add(XmlText('\n  '));
 
-        // Add the new mainGroup to the document
-        document.rootElement.children.add(XmlText('\n  ')); // Indentation
+        document.rootElement.children.add(XmlText('\n  '));
         document.rootElement.children.add(newMainGroup);
       }
 
-      document.rootElement.children.add(XmlText('\n')); // Final newline
-
-      // Save with proper formatting
+      document.rootElement.children.add(XmlText('\n'));
+      
       final prettyXml = document.toXmlString(pretty: true, indent: '  ');
       await File(registPath).writeAsString(prettyXml);
     } catch (e) {

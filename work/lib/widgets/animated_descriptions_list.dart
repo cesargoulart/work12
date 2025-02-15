@@ -4,10 +4,13 @@ class AnimatedDescriptionsList extends StatefulWidget {
   final List<String> descriptions;
   final VoidCallback onClose;
 
+  final Function(String) onSelect;
+
   const AnimatedDescriptionsList({
     super.key,
     required this.descriptions,
     required this.onClose,
+    required this.onSelect,
   });
 
   @override
@@ -108,19 +111,28 @@ class _AnimatedDescriptionsListState extends State<AnimatedDescriptionsList>
                                 ),
                               );
                             },
-                            child: Card(
-                              color: const Color(0xFF3D3D3D),
-                              elevation: 4,
-                              margin: const EdgeInsets.symmetric(
-                                vertical: 4,
-                                horizontal: 8,
-                              ),
-                              child: ListTile(
-                                title: Text(
-                                  widget.descriptions[index],
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
+                            child: GestureDetector(
+                              onTap: () {
+                                // Handle item click
+                                print('Description ${widget.descriptions[index]} clicked');
+                                print('Item clicked');
+                                widget.onSelect(widget.descriptions[index]);
+                                widget.onClose();
+                              },
+                              child: Card(
+                                color: const Color(0xFF3D3D3D),
+                                elevation: 4,
+                                margin: const EdgeInsets.symmetric(
+                                  vertical: 4,
+                                  horizontal: 8,
+                                ),
+                                child: ListTile(
+                                  title: Text(
+                                    widget.descriptions[index],
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                    ),
                                   ),
                                 ),
                               ),

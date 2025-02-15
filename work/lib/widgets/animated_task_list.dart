@@ -31,14 +31,20 @@ class AnimatedTaskList extends StatelessWidget {
       itemCount: tasks.length,
       itemBuilder: (context, index) {
         final task = tasks[index];
-        return AnimatedTaskItem(
-          key: ValueKey(task.id),
-          task: task,
-          onToggle: () => onTaskToggle(task.id),
-          onDelete: () => onTaskDelete(task.id),
-          onExpand: () => onTaskExpand(task.id),
-          onSubtaskCreated: onSubtaskCreated,
-          onSubtaskToggle: onSubtaskToggle,
+        return GestureDetector(
+          onTap: () {
+            // Handle item click
+            print('Task ${task.title} clicked');
+          },
+          child: AnimatedTaskItem(
+            key: ValueKey(task.id),
+            task: task,
+            onToggle: () => onTaskToggle(task.id),
+            onDelete: () => onTaskDelete(task.id),
+            onExpand: () => onTaskExpand(task.id),
+            onSubtaskCreated: onSubtaskCreated,
+            onSubtaskToggle: onSubtaskToggle,
+          ),
         );
       },
     );
