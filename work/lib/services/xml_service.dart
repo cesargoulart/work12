@@ -44,10 +44,11 @@ class XmlService {
       final xmlString = await file.readAsString();
       final document = XmlDocument.parse(xmlString);
 
-      return document.findAllElements('description')
+      final descriptions = document.findAllElements('description')
           .map((e) => e.text)
           .where((desc) => desc.isNotEmpty)
           .toList();
+      return descriptions.reversed.toList(); // Return in reverse order
     } catch (e) {
       print('Error loading descriptions from projects.xml: $e');
       return [];
