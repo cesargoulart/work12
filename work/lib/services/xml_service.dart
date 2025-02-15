@@ -6,6 +6,7 @@ import '../models/subtask_model.dart';
 
 class XmlService {
   static const String registPath = 'C:/Users/cesar/Documents/assets/regist.xml';
+  static const String projectsPath = 'C:/Users/cesar/Documents/assets/projects.xml';
 
   static Future<String?> loadTextContent(String? dropdown1Value, String? dropdown2Value) async {
     try {
@@ -32,6 +33,24 @@ class XmlService {
     } catch (e) {
       print('Error loading text content from regist.xml: $e');
       return null;
+    }
+  }
+
+  static Future<List<String>> loadProjectDescriptions() async {
+    try {
+      final file = File(projectsPath);
+      if (!await file.exists()) return [];
+
+      final xmlString = await file.readAsString();
+      final document = XmlDocument.parse(xmlString);
+
+      return document.findAllElements('description')
+          .map((e) => e.text)
+          .where((desc) => desc.isNotEmpty)
+          .toList();
+    } catch (e) {
+      print('Error loading descriptions from projects.xml: $e');
+      return [];
     }
   }
 

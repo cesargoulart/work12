@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import '../widgets/animated_search_bar.dart';
 import '../widgets/save_to_xml_button.dart';
 import '../services/xml_service.dart';
+import '../features/handle_green_button_press.dart';
+import '../widgets/green_h_button.dart';
 import '../widgets/animated_checkbox_group.dart';
 import '../widgets/animated_dropdown.dart';
 import '../widgets/animated_add_button.dart';
@@ -472,6 +474,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               onHelpPressed: _handleHelp,
                               onChanged: _handleTextChanged,
                             ),
+                          ),
+                          const SizedBox(width: 8),
+                          GreenHButton(
+                            onPressed: () => handleGreenButtonPress(context),
                           ),
                           const SizedBox(width: 8),
                           SaveToXmlButton(
