@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'animated_icon_button.dart';
+import '../features/handle_description_updates.dart';
 
 class AnimatedSearchBar extends StatefulWidget {
   final TextEditingController controller;
@@ -21,22 +23,25 @@ class AnimatedSearchBar extends StatefulWidget {
 }
 
 class _AnimatedSearchBarState extends State<AnimatedSearchBar> {
-  Future<String> _loadCurrentDescription() async {
-    try {
-      final file = File(r'C:\Users\cesar\Documents\assets\projects.xml');
-      if (await file.exists()) {
-        final content = await file.readAsString();
-        final regExp = RegExp(r'<description>(.*?)</description>');
-        final matches = regExp.allMatches(content);
-        if (matches.isNotEmpty) {
-          final lastMatch = matches.last;
-          return lastMatch.group(1)?.trim() ?? 'No description';
-        }
-      }
-      return 'No description';
-    } catch (e) {
-      return 'Error loading description';
-    }
+  final _descriptionHandler = DescriptionUpdateHandler();
+  StreamSubscription<String>? _descriptionSubscription;
+  String _currentDescription = 'No description';
+
+  @override
+  void initState() {
+    super.initState();
+    _currentDescription = _descriptionHandler.getCurrentDescription();
+    _descriptionSubscription = _descriptionHandler.descriptionStream.listen((description) {
+      setState(() {
+        _currentDescription = description;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _descriptionSubscription?.cancel();
+    super.dispose();
   }
 
   @override
@@ -73,18 +78,13 @@ class _AnimatedSearchBarState extends State<AnimatedSearchBar> {
           ),
         ),
         const SizedBox(width: 12),
-        FutureBuilder<String>(
-          future: _loadCurrentDescription(),
-          builder: (context, snapshot) {
-            return AnimatedIconButton(
-              icon: Icons.description,
-              label: snapshot.data ?? 'No description',
-              onTap: () async {
-                setState(() {});  // Trigger rebuild to refresh description
-              },
-              backgroundColor: Colors.brown,
-            );
+        AnimatedIconButton(
+          icon: Icons.description,
+          label: _currentDescription,
+          onTap: () async {
+            // No need to do anything here as description updates come through stream
           },
+          backgroundColor: Colors.brown,
         ),
         const SizedBox(width: 12),
         AnimatedIconButton(

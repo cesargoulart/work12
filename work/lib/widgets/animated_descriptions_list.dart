@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../features/handle_description_updates.dart';
 
 class AnimatedDescriptionsList extends StatefulWidget {
   final List<String> descriptions;
@@ -113,10 +114,10 @@ class _AnimatedDescriptionsListState extends State<AnimatedDescriptionsList>
                             },
                             child: GestureDetector(
                               onTap: () {
-                                // Handle item click
-                                print('Description ${widget.descriptions[index]} clicked');
-                                print('Item clicked');
-                                widget.onSelect(widget.descriptions[index]);
+                                final selectedDescription = widget.descriptions[index];
+                                // Update the description through the handler
+                                DescriptionUpdateHandler().updateDescription(selectedDescription);
+                                widget.onSelect(selectedDescription);
                                 widget.onClose();
                               },
                               child: Card(
