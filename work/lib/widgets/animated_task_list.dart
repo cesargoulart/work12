@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/task_model.dart';
 import '../models/subtask_model.dart';
 import '../helpers/task_status_helper.dart';
+import '../features/handle_project_selection.dart';
 import 'animated_subtask_list.dart';
 import 'subtask_creation_handler.dart';
 
@@ -33,8 +34,7 @@ class AnimatedTaskList extends StatelessWidget {
         final task = tasks[index];
         return GestureDetector(
           onTap: () {
-            // Handle item click
-            print('Task ${task.title} clicked');
+            ProjectSelectionHandler.handleProjectSelection(task.title);
           },
           child: AnimatedTaskItem(
             key: ValueKey(task.id),

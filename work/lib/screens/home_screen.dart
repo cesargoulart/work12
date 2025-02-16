@@ -17,6 +17,7 @@ import '../widgets/purple_button.dart';
 import '../models/task_model.dart';
 import '../models/subtask_model.dart';
 import '../features/handle_purple_button_press.dart';
+import '../features/update_checkboxes.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -50,6 +51,14 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadDropdownItems();
     _loadLastProject();
     _loadTasks();
+    
+    // Initialize checkbox updater
+    initCheckboxUpdater((newValues) {
+      setState(() {
+        _checkboxValues.clear();
+        _checkboxValues.addAll(newValues);
+      });
+    });
   }
 
   Future<void> _loadTasks() async {
