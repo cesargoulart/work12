@@ -12,50 +12,90 @@ class _SaveWidgetState extends State<SaveWidget> {
   final TextEditingController _controller = TextEditingController();
   String? _currentDescription;
 
-  Future<void> _saveText() async {
+  Future<void> _updateExistingDescription(String text, File file) async {
     try {
-      final text = _controller.text;
+      String xmlContent = await file.readAsString();
+      // Use non-greedy match and positive lookahead to find last description
+      final regExp = RegExp(r'(<description>)(.*?)(<\/description>)(?!.*<description>)');
+      final match = regExp.firstMatch(xmlContent);
+
+      if (match != null) {
+        final updatedContent = xmlContent.replaceFirst(
+          regExp,
+          '${match.group(1)}${text.trim()}${match.group(3)}'
+        );
+        await file.writeAsString(updatedContent);
+        return;
+      }
+      throw Exception('No matching description found to update');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> _createNewDescription(String text, File file) async {
+    String xmlContent;
+    if (await file.exists()) {
+      xmlContent = await file.readAsString();
+      if (!xmlContent.trim().endsWith('</projects>')) {
+        xmlContent = '<?xml version="1.0" encoding="UTF-8"?>\n<projects>\n';
+      } else {
+        xmlContent = xmlContent.substring(0, xmlContent.lastIndexOf('</projects>'));
+      }
+    } else {
+      xmlContent = '<?xml version="1.0" encoding="UTF-8"?>\n<projects>\n';
+    }
+
+    xmlContent += '  <project>\n    <description>${text.trim()}</description>\n  </project>\n</projects>';
+    await file.writeAsString(xmlContent);
+  }
+
+  Future<void> _saveText() async {
+    final text = _controller.text.trim();
+    if (text.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please enter some text before saving'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    try {
       final directory = Directory(r'C:\Users\cesar\Documents\assets');
       final file = File(r'C:\Users\cesar\Documents\assets\projects.xml');
 
-      // Create directory if it doesn't exist
       if (!await directory.exists()) {
         await directory.create(recursive: true);
       }
 
-      // Read existing content or create new XML structure
-      String xmlContent;
-      if (await file.exists()) {
-        xmlContent = await file.readAsString();
-        // Remove last </projects> tag to append new entry
-        xmlContent = xmlContent.replaceAll('</projects>', '');
+      if (_currentDescription != null && _currentDescription!.isNotEmpty) {
+        await _updateExistingDescription(text, file);
       } else {
-        xmlContent = '<?xml version="1.0" encoding="UTF-8"?>\n<projects>\n';
+        await _createNewDescription(text, file);
       }
-
-      // Add new project entry with description tag
-      xmlContent += '  <project>\n    <description>${text.trim()}</description>\n  </project>\n</projects>';
-
-      // Write updated content
-      await file.writeAsString(xmlContent);
       
-      // Clear text field after successful save
       _controller.clear();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Successfully saved to projects.xml')),
+          const SnackBar(
+            content: Text('Successfully saved to projects.xml'),
+            backgroundColor: Colors.green,
+          ),
         );
       }
-      // Refresh the current description after saving
       await _loadCurrentDescription();
-      setState(() {
-        _currentDescription = _currentDescription;
-      }); // Trigger a rebuild to update the button color
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving file: \$e')),
+          SnackBar(
+            content: Text('Error saving file: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -72,18 +112,12 @@ class _SaveWidgetState extends State<SaveWidget> {
       final file = File(r'C:\Users\cesar\Documents\assets\projects.xml');
       if (await file.exists()) {
         final content = await file.readAsString();
-        final regExp = RegExp(r'<description>(.*?)</description>');
-        final matches = regExp.allMatches(content);
-        if (matches.isNotEmpty) {
-          final lastMatch = matches.last;
-          setState(() {
-            _currentDescription = lastMatch.group(1)?.trim();
-          });
-        } else {
-          setState(() {
-            _currentDescription = '';
-          });
-        }
+        // Use non-greedy match and negative lookahead for last description
+        final regExp = RegExp(r'<description>(.*?)<\/description>(?!.*<description>)');
+        final match = regExp.firstMatch(content);
+        setState(() {
+          _currentDescription = match?.group(1)?.trim() ?? '';
+        });
       } else {
         setState(() {
           _currentDescription = '';
@@ -93,6 +127,14 @@ class _SaveWidgetState extends State<SaveWidget> {
       setState(() {
         _currentDescription = '';
       });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading description: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -104,17 +146,31 @@ class _SaveWidgetState extends State<SaveWidget> {
           controller: _controller,
           decoration: const InputDecoration(
             labelText: 'Enter text to save',
+            border: OutlineInputBorder(),
           ),
+          maxLines: null,
         ),
         const SizedBox(height: 16),
         Row(
           children: [
             Expanded(
               child: ElevatedButton(
-                onPressed: _loadCurrentDescription,
-                child: Text(_currentDescription ?? 'No description'),
+                onPressed: _currentDescription != null && _currentDescription!.isNotEmpty 
+                  ? () => _controller.text = _currentDescription!
+                  : _loadCurrentDescription,
+                child: Text(
+                  _currentDescription?.isNotEmpty == true 
+                    ? _currentDescription! 
+                    : 'No description'
+                ),
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 48),
+                  backgroundColor: _currentDescription != null && _currentDescription!.isNotEmpty
+                      ? Colors.deepPurple.shade300
+                      : null,
+                  foregroundColor: _currentDescription != null && _currentDescription!.isNotEmpty
+                      ? Colors.white
+                      : null,
                 ),
               ),
             ),
@@ -125,7 +181,8 @@ class _SaveWidgetState extends State<SaveWidget> {
                 child: const Text('Save'),
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 48),
-                  backgroundColor: Colors.brown, // Set background color to brown
+                  backgroundColor: Colors.brown,
+                  foregroundColor: Colors.white,
                 ),
               ),
             ),
