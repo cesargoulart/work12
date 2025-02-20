@@ -92,13 +92,6 @@ class _AnimatedSearchBarState extends State<AnimatedSearchBar> {
           label: 'Save',
           onTap: widget.onSave,
         ),
-        const SizedBox(width: 12),
-        AnimatedIconButton(
-          icon: Icons.help_outline_rounded,
-          label: 'H',
-          onTap: widget.onHelpPressed,
-          backgroundColor: Colors.green,
-        ),
       ],
     );
   }
