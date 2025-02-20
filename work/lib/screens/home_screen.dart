@@ -19,6 +19,7 @@ import '../models/task_model.dart';
 import '../models/subtask_model.dart';
 import '../features/handle_purple_button_press.dart';
 import '../features/update_checkboxes.dart';
+import '../features/handle_description_updates.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -152,10 +153,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   Future<void> _handleSave() async {
+    // Get the current description from the DescriptionUpdateHandler.
+    // If it's "No description", treat it as empty.
+    final currentDescription = DescriptionUpdateHandler().getCurrentDescription();
     await SaveHandler.saveToXml(
       checkboxValues: _checkboxValues,
       text: _textController.text.trim(),
       context: context,
+      currentDescription: (currentDescription == 'No description') ? '' : currentDescription,
     );
     
     if (mounted) {
