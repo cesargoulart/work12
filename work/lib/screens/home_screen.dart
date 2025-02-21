@@ -182,7 +182,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       const SnackBar(
         content: Text('Help section coming soon!'),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: Color(0xFF424242),
+        backgroundColor: Color(0xFF574A41), // Lighter brown to match cardColor
       ),
     );
   }
@@ -263,12 +263,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     return Theme(
       data: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF1A1A1A),
-        cardColor: const Color(0xFF2D2D2D),
-        primaryColor: Colors.deepPurple,
+        scaffoldBackgroundColor: const Color(0xFF403732), // Dark brown, slightly lighter
+        cardColor: const Color(0xFF574A41), // Lighter brown for cards
+        primaryColor: const Color(0xFFDBC3A9), // Light brown
         colorScheme: const ColorScheme.dark(
-          primary: Colors.deepPurple,
-          secondary: Colors.deepPurpleAccent,
+          primary: Color(0xFFDBC3A9), // Light brown
+          secondary: Color(0xFFBE9B7B), // Medium brown
+          surface: Color(0xFF574A41), // Lighter brown for surfaces
+          background: Color(0xFF403732), // Dark brown
         ),
       ),
       child: Scaffold(
@@ -395,7 +397,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 // Bottom row with text box and purple button
                 Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2D2D2D),
+                    color: const Color(0xFF574A41), // Lighter brown to match cardColor
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.2),
