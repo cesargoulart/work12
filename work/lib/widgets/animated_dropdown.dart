@@ -77,6 +77,7 @@ class _AnimatedDropdownState extends State<AnimatedDropdown>
               borderRadius: BorderRadius.circular(12),
               padding: const EdgeInsets.symmetric(horizontal: 16),
               icon: const Icon(Icons.keyboard_arrow_down_rounded),
+              dropdownColor: Colors.grey[50],
               items: widget.items.map((String item) {
                 return DropdownMenuItem<String>(
                   value: item,
