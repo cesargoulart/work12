@@ -83,8 +83,20 @@ class _AnimatedTaskDialogState extends State<AnimatedTaskDialog>
                   const SizedBox(height: 24),
                   TextFormField(
                     controller: _titleController,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
                     decoration: InputDecoration(
                       labelText: 'Task Title',
+                      labelStyle: const TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      floatingLabelStyle: const TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),

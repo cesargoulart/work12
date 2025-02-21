@@ -65,6 +65,10 @@ class _AnimatedSearchBarState extends State<AnimatedSearchBar> {
             child: TextField(
               controller: widget.controller,
               onChanged: widget.onChanged,
+              style: const TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
               decoration: InputDecoration(
                 hintText: 'Enter text here...',
                 border: OutlineInputBorder(

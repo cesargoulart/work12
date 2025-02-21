@@ -66,7 +66,13 @@ class _AnimatedDropdownState extends State<AnimatedDropdown>
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: widget.value,
-              hint: Text(widget.hint),
+              hint: Text(
+                widget.hint,
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               isExpanded: true,
               borderRadius: BorderRadius.circular(12),
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -78,6 +84,8 @@ class _AnimatedDropdownState extends State<AnimatedDropdown>
                     item,
                     style: const TextStyle(
                       fontSize: 16,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 );
