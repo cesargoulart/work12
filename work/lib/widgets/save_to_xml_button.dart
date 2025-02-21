@@ -66,6 +66,7 @@ class SaveToXmlButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return PurpleButton(
       onPressed: () => _handleSave(context),
+      text: '',
     );
   }
 }

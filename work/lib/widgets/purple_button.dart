@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 
 class PurpleButton extends StatelessWidget {
   final VoidCallback onPressed;
+  final String? text;
 
-  const PurpleButton({super.key, required this.onPressed});
+  const PurpleButton({
+    super.key, 
+    required this.onPressed, 
+    this.text = 'Text'
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +17,7 @@ class PurpleButton extends StatelessWidget {
         backgroundColor: Colors.grey,
       ),
       onPressed: onPressed,
-      child: const Text('Text'),
+      child: Text(text ?? ''),
     );
   }
 }
