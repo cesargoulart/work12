@@ -1,9 +1,9 @@
 import 'dart:io';
 import '../models/project_model.dart';
 import '../widgets/animated_checkbox_group.dart';
+import '../services/xml_service.dart';
 
 class HandleSaveWithDescription {
-  final String projectsPath = 'C:/Users/cesar/Documents/assets/projects.xml';
   
   Future<void> execute({
     required String currentDescription,
@@ -14,7 +14,7 @@ class HandleSaveWithDescription {
       return;
     }
 
-    final file = File(projectsPath);
+    final file = File(XmlService.projectsPath);
     if (!await file.exists()) {
       throw Exception('Projects file not found');
     }

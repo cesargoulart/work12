@@ -99,7 +99,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   void _loadDropdownItems() async {
     try {
-      final file = File('C:/Users/cesar/Documents/assets/tasks.xml');
+      final file = File(XmlService.tasksPath);
       final xmlString = await file.readAsString();
       final document = XmlDocument.parse(xmlString);
 
@@ -123,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   void _loadLastProject() async {
     try {
-      final file = File('C:/Users/cesar/Documents/assets/projects.xml');
+      final file = File(XmlService.projectsPath);
       if (!await file.exists()) return;
 
       final xmlString = await file.readAsString();

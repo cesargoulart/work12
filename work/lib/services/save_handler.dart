@@ -1,9 +1,15 @@
 import 'dart:io';
 import 'package:xml/xml.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as path;
 
 class SaveHandler {
-  static const String _filePath = r'C:\Users\cesar\Documents\assets\projects.xml';
+  static String get assetsPath {
+    final userProfile = Platform.environment['USERPROFILE'] ?? '';
+    return path.join(userProfile, 'Documents', 'assets');
+  }
+
+  static String get filePath => path.join(assetsPath, 'projects.xml');
   
   static Future<void> saveToXml({
     required Map<String, bool> checkboxValues,
@@ -18,7 +24,7 @@ class SaveHandler {
         return;
       }
 
-      final directory = Directory(r'C:\Users\cesar\Documents\assets');
+      final directory = Directory(assetsPath);
       await _ensureDirectoryExists(directory);
 
       // Load or create the XML document.
@@ -71,7 +77,7 @@ class SaveHandler {
   }
 
   static Future<XmlDocument> _loadOrCreateDocument() async {
-    final file = File(_filePath);
+    final file = File(filePath);
     if (await file.exists()) {
       final xmlString = await file.readAsString();
       return XmlDocument.parse(xmlString);
@@ -133,7 +139,7 @@ class SaveHandler {
   }
 
   static Future<void> _saveDocument(XmlDocument document) async {
-    final file = File(_filePath);
+    final file = File(filePath);
     await file.writeAsString(document.toXmlString(pretty: true));
   }
 

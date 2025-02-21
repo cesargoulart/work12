@@ -6,8 +6,14 @@ import '../models/subtask_model.dart';
 import '../models/project_model.dart';
 
 class XmlService {
-  static const String registPath = 'C:/Users/cesar/Documents/assets/regist.xml';
-  static const String projectsPath = 'C:/Users/cesar/Documents/assets/projects.xml';
+  static String get _assetsPath {
+    final userProfile = Platform.environment['USERPROFILE'] ?? '';
+    return path.join(userProfile, 'Documents', 'assets');
+  }
+
+  static String get registPath => path.join(_assetsPath, 'regist.xml');
+  static String get projectsPath => path.join(_assetsPath, 'projects.xml');
+  static String get tasksPath => path.join(_assetsPath, 'tasks.xml');
 
   static Future<String?> loadTextContent(String? dropdown1Value, String? dropdown2Value) async {
     try {

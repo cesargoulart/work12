@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/project_model.dart';
 import '../features/handle_save_with_description.dart';
+import '../services/save_handler.dart';
 
 class SaveWidget extends StatefulWidget {
   final List<bool> checkboxStates;
@@ -73,8 +74,8 @@ class _SaveWidgetState extends State<SaveWidget> {
 
   Future<void> _saveText() async {
     try {
-      final directory = Directory(r'C:\Users\cesar\Documents\assets');
-      final file = File(r'C:\Users\cesar\Documents\assets\projects.xml');
+      final directory = Directory(SaveHandler.assetsPath);
+      final file = File(SaveHandler.filePath);
 
       if (!await directory.exists()) {
         await directory.create(recursive: true);
@@ -156,7 +157,7 @@ class _SaveWidgetState extends State<SaveWidget> {
 
   Future<void> _loadCurrentDescription() async {
     try {
-      final file = File(r'C:\Users\cesar\Documents\assets\projects.xml');
+      final file = File(SaveHandler.filePath);
       if (await file.exists()) {
         final content = await file.readAsString();
         final regExp = RegExp(r'<description>(.*?)</description>(?!.*<description>)');
