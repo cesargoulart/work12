@@ -12,7 +12,7 @@ class PurpleButton extends StatelessWidget {
         backgroundColor: Colors.grey,
       ),
       onPressed: onPressed,
-      child: const Text('Purple'),
+      child: const Text('Text'),
     );
   }
 }
