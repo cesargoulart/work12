@@ -5,7 +5,7 @@ class DescriptionUpdateHandler {
   factory DescriptionUpdateHandler() => _instance;
   DescriptionUpdateHandler._internal();
 
-  String _currentDescription = 'No description';
+  String _currentDescription = '...';
   final _controller = StreamController<String>.broadcast();
 
   Stream<String> get descriptionStream => _controller.stream;
