@@ -103,6 +103,11 @@ class _AnimatedSubtaskItemState extends State<AnimatedSubtaskItem>
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(4),
                   ),
+                  side: const BorderSide(
+                    color: Colors.black,
+                    width: 2.0,
+                  ),
+                  activeColor: Colors.deepPurple,
                 ),
               ),
               const SizedBox(width: 12),

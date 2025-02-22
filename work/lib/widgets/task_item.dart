@@ -29,6 +29,18 @@ class TaskItem extends StatelessWidget {
         ),
         Expanded(
           child: ListTile(
+            leading: Checkbox(
+              value: task.isCompleted,
+              onChanged: (_) => onToggle(),
+              activeColor: Colors.deepPurple,
+              side: const BorderSide(
+                color: Colors.black,
+                width: 2.0,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4.0),
+              ),
+            ),
             title: Text(task.title),
             subtitle: task.description != null ? Text(task.description!) : null,
             trailing: Row(

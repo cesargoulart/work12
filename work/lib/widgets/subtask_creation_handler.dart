@@ -54,7 +54,10 @@ class SubtaskCreationHandler extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: const Icon(Icons.add),
+      icon: const Icon(
+        Icons.add,
+        color: Colors.black87,
+      ),
       onPressed: () => _handleAddSubtask(context),
       tooltip: 'Add Subtask',
       padding: EdgeInsets.zero,
