@@ -300,10 +300,17 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                               GreenHButton(
                                 onPressed: () => handleGreenButtonPress(context),
                               ),
+                              const SizedBox(width: 8),
+                              Padding(
+                                padding: const EdgeInsets.all(0),
+                                child: PurpleButton(
+                                  onPressed: HandlePurpleButtonPress.handlePress,
+                                ),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 16),
-                          
+
                           // Checkboxes
                           AnimatedCheckboxGroup(
                             labels: const [
@@ -408,12 +415,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                             onTextChanged: HandlePurpleButtonPress.updateText,
                             controller: HandlePurpleButtonPress.textController,
                           ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: PurpleButton(
-                          onPressed: HandlePurpleButtonPress.handlePress,
                         ),
                       ),
                     ],
