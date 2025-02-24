@@ -58,7 +58,7 @@ class _LargeTextBoxState extends State<LargeTextBox> {
         ],
       ),
       child: SizedBox(
-        height: 150, // You can adjust this value
+        height: 90, // You can adjust this value
         child: TextField(
           controller: _controller,
           keyboardType: TextInputType.multiline,
