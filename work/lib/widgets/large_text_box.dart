@@ -57,13 +57,15 @@ class _LargeTextBoxState extends State<LargeTextBox> {
           ),
         ],
       ),
-      child: TextField(
-        controller: _controller,
-        maxLines: null, // Allows for multiple lines
-        keyboardType: TextInputType.multiline,
-        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-        decoration: InputDecoration(
-          hintText: 'Enter text here...',
+      child: SizedBox(
+        height: 150, // You can adjust this value
+        child: SingleChildScrollView(
+          child: TextField(
+            controller: _controller,
+            keyboardType: TextInputType.multiline,
+            style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+            decoration: InputDecoration(
+              hintText: 'Enter text here...',
           hintStyle: TextStyle(color: Colors.grey[400], fontWeight: FontWeight.normal),
           border: InputBorder.none,
         ),
