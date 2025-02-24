@@ -4,10 +4,6 @@ import 'save_textbox_to_regist.dart';
 class HandlePurpleButtonPress {
   static final TextEditingController textController = TextEditingController();
 
-  static void updateText(String newText) {
-    textController.text = newText;
-  }
-
   static void setText(String? text) {
     textController.text = text ?? '';
   }

@@ -29,6 +29,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   final TextEditingController _textController = TextEditingController();
+  final TextEditingController _largeTextController = TextEditingController(); // New controller
   String? _firstDropdownValue;
   String? _secondDropdownValue;
   List<Task> _tasks = [];
@@ -82,6 +83,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   @override
   void dispose() {
     _animationController.dispose();
+    _largeTextController.dispose(); // Dispose of the new controller
     super.dispose();
   }
 
@@ -412,8 +414,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: LargeTextBox(
-                            onTextChanged: HandlePurpleButtonPress.updateText,
-                            controller: HandlePurpleButtonPress.textController,
+                            onTextChanged: (text) {
+                              setState(() {
+                                _largeTextController.text = text; // Use the new controller
+                              });
+                            },
+                            controller: _largeTextController, // Use the new controller
                           ),
                         ),
                       ),
